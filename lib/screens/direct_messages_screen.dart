@@ -85,26 +85,46 @@ class _DirectMessageScreenState extends State<DirectMessageScreen> {
                 return ListView.builder(
                   reverse: true,
                   itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMine = message['sender_id'] == _myId;
+                    itemBuilder: (context, index) {
+                      final message = messages[index];
+                      final isMine = message['sender_id'] == _myId;
 
-                    return Align(
-                      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isMine ? const Color(0xFF016239) : const Color(0xFF1E1E1E),
-                          borderRadius: BorderRadius.circular(16),
+                      // 1. Parse the raw database string into a local Dart DateTime object
+                      final createdAt = DateTime.parse(message['created_at']).toLocal();
+                      // 2. Format it into a clean, readable time (e.g., "10:42 AM")
+                      final timeString = TimeOfDay.fromDateTime(createdAt).format(context);
+
+                      return Align(
+                        alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                        // Wrap in a Column so we can stack the bubble and the timestamp
+                        child: Column(
+                          crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.only(left: 16, right: 16, top: 4, bottom: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isMine ? const Color(0xFF016239) : const Color(0xFF1E1E1E),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                message['content'],
+                                style: GoogleFonts.inter(color: Colors.white),
+                              ),
+                            ),
+
+                            // 3. The newly added Timestamp text
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+                              child: Text(
+                                timeString,
+                                style: GoogleFonts.inter(color: Colors.grey, fontSize: 10),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          message['content'],
-                          style: GoogleFonts.inter(color: Colors.white),
-                        ),
-                      ),
-                    );
-                  },
+                      );
+                    },
                 );
               },
             ),
